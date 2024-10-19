@@ -1,6 +1,6 @@
 # Project Overview
 
-A Playwright test suite that integrates with [shard-loads-equalizer](). For evenly distributed based on execution time, so each shard finishes in roughly the same duration
+A Playwright test suite that integrates with [shard-loads-equalizer](https://www.npmjs.com/package/shard-loads-equalizer). For evenly distributed based on execution time, so each shard finishes in roughly the same duration
 
 ## Installation
 
@@ -156,6 +156,9 @@ jobs:
          file_pattern: "*.json"
 ```
 
+![record-tests-time](https://github.com/user-attachments/assets/934364fe-4b8f-4a69-82c1-f334eb1a4410)
+
+
 #### shard-loads-equalizer.yml
 
 ```
@@ -246,3 +249,6 @@ jobs:
         run: |
          npx playwright test --shard=${{ matrix.shardIndex }}/${{ github.event.inputs.shardTotal }}
 ```
+
+![shard-loads-equalizer](https://github.com/user-attachments/assets/25c8ea3a-81eb-4f92-99e9-04de5067f686)
+
