@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.7.5"
+  },
+  "scripts": {},
+  "dependencies": {
+    "shard-loads-equalizer": "^1.0.0"
+  }
+}
