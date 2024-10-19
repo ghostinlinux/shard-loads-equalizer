@@ -26,15 +26,16 @@ test.afterEach(async ({}, testInfo) => {
 
 ##### Note : 
 - Your Test Case Title Must Be Unique. [ Mandatory Note ]
-- Put this code block into your test case. You can take reference from this Repo Within tests directory.
+- Put above code block into your test case. You can take reference from this Repo Within tests directory.
+- First you have to Run "record-tests-time.yml" then "shard-loads-equalizer.yml".
+- When you got your "test_run_statistics.json" file then no need to run "record-tests-time.yml".
+- This Pipeline "record-tests-time.yml" automatically run, when you push the changes in tests directory. If you want to trigger it manually you can.
 
 ## Integration with Github Action Pipeline
 
 - **Pipeline Files**
   - record-tests-time.yml
   - shard-loads-equalizer.yml
-
-#### Note : First you have to Run record-tests-time.yml then shard-loads-equalizer.yml
 
 ### About record-tests-time.yml
 
