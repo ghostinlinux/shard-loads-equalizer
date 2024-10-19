@@ -24,7 +24,9 @@ test.afterEach(async ({}, testInfo) => {
 
 ```
 
-##### Note : Put this code block into your test case. You can take reference from this Repo Within tests directory.
+##### Note : 
+- Your Test Case Title Must Be Unique. [ Mandatory Note ]
+- Put this code block into your test case. You can take reference from this Repo Within tests directory.
 
 ## Integration with Github Action Pipeline
 
@@ -251,4 +253,7 @@ jobs:
 ```
 
 ![shard-loads-equalizer](https://github.com/user-attachments/assets/25c8ea3a-81eb-4f92-99e9-04de5067f686)
+
+### TODO
+- Build Support For Azure DevOps Pipeline
 
