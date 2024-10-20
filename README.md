@@ -8,6 +8,12 @@ A Playwright test suite that integrates with [shard-loads-equalizer](https://www
 npm install shard-loads-equalizer
 ```
 
+### Set ENV in Local OR ENV in Github Secret
+
+```
+MEASURE_EXECUTION_TIME = true
+```
+
 ## Integrate shard-loads-equalizer with Test Suites
 
 ```
@@ -24,7 +30,8 @@ test.afterEach(async ({}, testInfo) => {
 
 ```
 
-##### Note : 
+##### Note :
+
 - Your Test Case Title Must Be Unique. [ Mandatory Note ]
 - Put above code block into your test case. You can take reference from this Repo Within tests directory.
 - First you have to Run "record-tests-time.yml" then "shard-loads-equalizer.yml".
@@ -115,8 +122,15 @@ jobs:
     - name: Install dependencies
       run: npm install
     - name: Run Playwright tests
+      env:
+        MEASURE_EXECUTION_TIME: ${{ secrets.MEASURE_EXECUTION_TIME }}
       run: |
-        MEASURE_EXECUTION_TIME=true npx playwright test --shard=${{ matrix.shardIndex }}/${{ needs.set_variables.outputs.shardTotal }} --repeat-each=1
+        if [ "${{ env.MEASURE_EXECUTION_TIME }}" = "true" ]; then
+        npx playwright test --shard=${{ matrix.shardIndex }}/${{ needs.set_variables.outputs.shardTotal }} --repeat-each=1
+        else
+        echo "Skipping test execution because MEASURE_EXECUTION_TIME is FALSE"
+        exit 1
+        fi
     - name: Upload JSON File
       uses: actions/upload-artifact@v4
       with:
@@ -157,10 +171,10 @@ jobs:
       with:
          commit_message: 'Update Tests Record Time file'
          file_pattern: "*.json"
+
 ```
 
 ![record-tests-time](https://github.com/user-attachments/assets/934364fe-4b8f-4a69-82c1-f334eb1a4410)
-
 
 #### shard-loads-equalizer.yml
 
@@ -256,5 +270,5 @@ jobs:
 ![shard-loads-equalizer](https://github.com/user-attachments/assets/25c8ea3a-81eb-4f92-99e9-04de5067f686)
 
 ### TODO
-- Build Support For Azure DevOps Pipeline
 
+- Build Support For Azure DevOps Pipeline
