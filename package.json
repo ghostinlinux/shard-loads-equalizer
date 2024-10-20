@@ -6,6 +6,6 @@
   },
   "scripts": {},
   "dependencies": {
-    "shard-loads-equalizer": "^1.0.0"
+    "shard-loads-equalizer": "^1.0.1"
   }
 }
