@@ -65,8 +65,15 @@ jobs:
     - name: Install dependencies
       run: npm install
     - name: Run Playwright tests
+      env:
+        MEASURE_EXECUTION_TIME: ${{ secrets.MEASURE_EXECUTION_TIME }}
       run: |
-        MEASURE_EXECUTION_TIME=true npx playwright test --shard=${{ matrix.shardIndex }}/${{ needs.set_variables.outputs.shardTotal }} --repeat-each=1
+        if [ "${{ env.MEASURE_EXECUTION_TIME }}" = "true" ]; then
+        npx playwright test --shard=${{ matrix.shardIndex }}/${{ needs.set_variables.outputs.shardTotal }} --repeat-each=1
+        else
+        echo "Skipping test execution because MEASURE_EXECUTION_TIME is FALSE"
+        exit 1
+        fi
     - name: Upload JSON File
       uses: actions/upload-artifact@v4
       with:
