@@ -20,10 +20,6 @@ MEASURE_EXECUTION_TIME = true
 import { test } from "@playwright/test";
 import { recordTestsExecutionTime } from "shard-loads-equalizer";
 
-test.beforeEach(async ({}, testInfo) => {
-  testInfo.duration;
-});
-
 test.afterEach(async ({}, testInfo) => {
   recordTestsExecutionTime(testInfo);
 });
