@@ -1,10 +1,6 @@
 import { test } from "@playwright/test";
 import { recordTestsExecutionTime } from "shard-loads-equalizer";
 
-test.beforeEach(async ({}, testInfo) => {
-  testInfo.duration;
-});
-
 // Define a global afterEach hook
 test.afterEach(async ({}, testInfo) => {
   recordTestsExecutionTime(testInfo); // Custom function to measure time
