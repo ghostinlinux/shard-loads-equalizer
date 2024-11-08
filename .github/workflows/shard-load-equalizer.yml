@@ -1,5 +1,4 @@
 name: Run Tests With Shard Loads Equalizer
-
 on:
   workflow_dispatch:
     inputs:
@@ -18,13 +17,12 @@ jobs:
     outputs:
       shardIndexArray: ${{ steps.set_vars.outputs.shardIndexArray }}
     steps:
-      - name: Set shardIndex array and AUTO environment variable
+      - name: Set shardIndex array
         id: set_vars
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
           echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
           echo "::set-output name=shardIndexArray::$shardIndexArray"
-          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
 
   run_tests_with_shard_loads_equalizer:
     runs-on: ubuntu-latest
@@ -52,21 +50,19 @@ jobs:
         run: |
           npx playwright test --grep "${{ env.test_names }}"
 
- 
+  # This is Optional my intenstion is to run the tests without shard loads equalizer to show the difference in execution time
   set_variable_for_normal_tests:
     needs: run_tests_with_shard_loads_equalizer
     runs-on: ubuntu-latest
     outputs:
       shardIndexArray: ${{ steps.set_variable_for_normal_test.outputs.shardIndexArray }}
     steps:
-      - name: Set shardIndex array and AUTO environment variable
+      - name: Set shardIndex array
         id: set_variable_for_normal_test
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
           echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
           echo "::set-output name=shardIndexArray::$shardIndexArray"
-          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
-
   run_tests_without_shard_loads_equalizer:
     needs:
       - set_variable_for_normal_tests
