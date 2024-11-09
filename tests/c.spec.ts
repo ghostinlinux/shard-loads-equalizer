@@ -1,11 +1,4 @@
-import { test } from "@playwright/test";
-import { recordTestsExecutionTime } from "shard-loads-equalizer";
-
-// Define a global afterEach hook
-test.afterEach(async ({}, testInfo) => {
-  recordTestsExecutionTime(testInfo); // Custom function to measure time
-});
-
+import { test } from "../baseTest";
 test.describe("c_1st_describe", () => {
   test("check application loads successfully now", async ({ page }) => {
     await page.waitForTimeout(6000);
@@ -46,7 +39,7 @@ test.describe("c_2nd_describe", () => {
   }) => {
     await page.waitForTimeout(6000);
     console.log(
-      "simulate multiple user scenarios effectively sfyawgoulrgyuawg"
+      "✔️simulate multiple user scenarios effectively sfyawgoulrgyuawg"
     );
   });
 

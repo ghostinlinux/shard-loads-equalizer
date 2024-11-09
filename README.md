@@ -16,13 +16,10 @@ MEASURE_EXECUTION_TIME = true
 
 ## Integrate shard-loads-equalizer with Test Suites
 
-```
-import { test } from "@playwright/test";
-import { recordTestsExecutionTime } from "shard-loads-equalizer";
+### You can create a baseTest.ts file and include the necessary setup code from my repository's baseTest.ts. This way, you won’t need to call recordTestsExecutionTime in every individual spec file. Instead, the setup in baseTest.ts will ensure that the test execution time is recorded automatically for all tests that extend or use this base file.
 
-test.afterEach(async ({}, testInfo) => {
-  recordTestsExecutionTime(testInfo);
-});
+```
+import { test } from "../baseTest";
 
 ```
 
@@ -110,8 +107,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Set shardIndex environment variable
-      run: echo 'SHARD_INDEX=${{ matrix.shardIndex }}' >> $GITHUB_ENV
+    - name: Set shardIndex and AUTO environment variables
+      run: |
+        echo 'SHARD_INDEX=${{ matrix.shardIndex }}' >> $GITHUB_ENV
+        echo 'AUTO=true' >> $GITHUB_ENV  # Set AUTO environment variable to true
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
@@ -120,12 +119,13 @@ jobs:
     - name: Run Playwright tests
       env:
         MEASURE_EXECUTION_TIME: ${{ secrets.MEASURE_EXECUTION_TIME }}
+        AUTO: true  # Ensure AUTO is set to true here
       run: |
-        if [ "${{ env.MEASURE_EXECUTION_TIME }}" = "true" ]; then
-        npx playwright test --shard=${{ matrix.shardIndex }}/${{ needs.set_variables.outputs.shardTotal }} --repeat-each=1
+        if [ "${{ env.MEASURE_EXECUTION_TIME }}" = "true" ] && [ "${{ env.AUTO }}" = "true" ]; then
+          npx playwright test --shard=${{ matrix.shardIndex }}/${{ needs.set_variables.outputs.shardTotal }} --repeat-each=1
         else
-        echo "Skipping test execution because MEASURE_EXECUTION_TIME is FALSE"
-        exit 1
+          echo "Skipping test execution because MEASURE_EXECUTION_TIME or AUTO is set to FALSE"
+          exit 1
         fi
     - name: Upload JSON File
       uses: actions/upload-artifact@v4
@@ -176,15 +176,16 @@ jobs:
 
 ```
 name: Run Tests With Shard Loads Equalizer
+
 on:
   workflow_dispatch:
     inputs:
       shardIndex:
-        description: 'Provide shard indices (comma-separated)'
+        description: "Provide shard indices (comma-separated)"
         required: true
-        default: '1,2,3,4,5,6,7,8,9,10'
+        default: "1,2,3,4,5,6,7,8,9,10"
       shardTotal:
-        description: 'Provide total number of shards'
+        description: "Provide total number of shards"
         required: true
         default: 10
 
@@ -194,12 +195,13 @@ jobs:
     outputs:
       shardIndexArray: ${{ steps.set_vars.outputs.shardIndexArray }}
     steps:
-      - name: Set shardIndex array
+      - name: Set shardIndex array and AUTO environment variable
         id: set_vars
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
           echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
           echo "::set-output name=shardIndexArray::$shardIndexArray"
+          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
 
   run_tests_with_shard_loads_equalizer:
     runs-on: ubuntu-latest
@@ -227,28 +229,30 @@ jobs:
         run: |
           npx playwright test --grep "${{ env.test_names }}"
 
-# This is Optional my intenstion is to run the tests without shard loads equalizer to show the difference in execution time
+
   set_variable_for_normal_tests:
     needs: run_tests_with_shard_loads_equalizer
     runs-on: ubuntu-latest
     outputs:
       shardIndexArray: ${{ steps.set_variable_for_normal_test.outputs.shardIndexArray }}
     steps:
-      - name: Set shardIndex array
+      - name: Set shardIndex array and AUTO environment variable
         id: set_variable_for_normal_test
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
           echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
           echo "::set-output name=shardIndexArray::$shardIndexArray"
-  run_tests_without_shard_load_equalizer:
+          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
+
+  run_tests_without_shard_loads_equalizer:
     needs:
       - set_variable_for_normal_tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     strategy:
-        fail-fast: false
-        matrix:
-          shardIndex: ${{ fromJson(needs.set_variable_for_normal_tests.outputs.shardIndexArray) }}
+      fail-fast: false
+      matrix:
+        shardIndex: ${{ fromJson(needs.set_variable_for_normal_tests.outputs.shardIndexArray) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -260,7 +264,8 @@ jobs:
         run: npm install
       - name: Run Playwright tests
         run: |
-         npx playwright test --shard=${{ matrix.shardIndex }}/${{ github.event.inputs.shardTotal }}
+          npx playwright test --shard=${{ matrix.shardIndex }}/${{ github.event.inputs.shardTotal }}
+
 ```
 
 ![shard-loads-equalizer](https://github.com/user-attachments/assets/25c8ea3a-81eb-4f92-99e9-04de5067f686)
