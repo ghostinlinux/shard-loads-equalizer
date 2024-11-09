@@ -18,12 +18,13 @@ jobs:
     outputs:
       shardIndexArray: ${{ steps.set_vars.outputs.shardIndexArray }}
     steps:
-      - name: Set shardIndex array
+      - name: Set shardIndex array and AUTO environment variable
         id: set_vars
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
           echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
           echo "::set-output name=shardIndexArray::$shardIndexArray"
+          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
 
   run_tests_with_shard_loads_equalizer:
     runs-on: ubuntu-latest
@@ -38,10 +39,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Set shardTotal and AUTO environment variables
-        run: |
-          echo "SHARD_TOTAL=${{ github.event.inputs.shardTotal }}" >> $GITHUB_ENV
-          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false
+      - name: Set shardTotal environment variable
+        run: echo "SHARD_TOTAL=${{ github.event.inputs.shardTotal }}" >> $GITHUB_ENV
       - name: Install dependencies
         run: npm install
       - name: Get test names
@@ -60,12 +59,13 @@ jobs:
     outputs:
       shardIndexArray: ${{ steps.set_variable_for_normal_test.outputs.shardIndexArray }}
     steps:
-      - name: Set shardIndex array
+      - name: Set shardIndex array and AUTO environment variable
         id: set_variable_for_normal_test
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
           echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
           echo "::set-output name=shardIndexArray::$shardIndexArray"
+          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
 
   run_tests_without_shard_loads_equalizer:
     needs:
@@ -81,10 +81,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Set shardTotal and AUTO environment variables
-        run: |
-          echo "shardTotal=${{ matrix.shardTotal }}" >> $GITHUB_ENV
-          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false for this job as well
+      - name: Set shardTotal environment variable
+        run: echo "shardTotal=${{ matrix.shardTotal }}" >> $GITHUB_ENV
       - name: Install dependencies
         run: npm install
       - name: Run Playwright tests
