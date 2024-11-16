@@ -282,6 +282,11 @@ jobs:
 
 ![shard-loads-equalizer](https://github.com/user-attachments/assets/25c8ea3a-81eb-4f92-99e9-04de5067f686)
 
+
+![Run WorkFlow](https://github.com/user-attachments/assets/90fd5537-af31-4578-9df4-d260b26a6fcf)
+
+
+
 ## Integration with Azure DevOps Pipeline
 
 #### record-tests-time.yaml
@@ -409,6 +414,8 @@ jobs:
         AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
 
 ```
+![record-tests-time](https://github.com/user-attachments/assets/7595421a-633e-4ff1-8104-3f3793e64b53)
+
 
 #### shard-loads-equalizer.yaml
 
@@ -574,3 +581,9 @@ stages:
         displayName: 'Run Playwright Tests'
 
 ```
+![shard-loads-equalizer](https://github.com/user-attachments/assets/959c6708-c549-4b26-bd0e-8872d5959f90)
+
+![Run Pipeline](https://github.com/user-attachments/assets/c75e4176-b30d-4b51-beb2-21b2358edc57)
+
+
+
