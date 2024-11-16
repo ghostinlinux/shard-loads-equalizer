@@ -1,0 +1,159 @@
+trigger: none
+parameters:
+  - name: shardIndex
+    displayName: 'Shard Index (comma-separated values)'
+    type: string
+    default: '1,2,3,4,5,6,7,8,9,10'
+  - name: shardTotal
+    displayName: 'Shard Total'
+    type: number
+    default: 10
+  - name: tag
+    displayName: 'Test Tags (comma-separated values)'
+    type: string
+    default: ' '
+
+variables:
+  - group: shard-load-variable-gp
+  - name: shardTotal
+    value: ${{ parameters.shardTotal }}
+  - name: artifactName
+    value: 'test_run_statistics'
+  - name: AUTO
+    value: 'true'
+
+stages:
+- stage: InitializeStage
+  displayName: 'Initialize Variables'
+  jobs:
+  - job: SetVariables
+    displayName: 'Set shardIndex array and shardTotal'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: Bash@3
+        name: SetVars
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "##vso[task.setvariable variable=shardTotal]${{ parameters.shardTotal }}"
+
+- stage: TestWithShardLoads
+  displayName: 'Tests With Shard Loads'
+  dependsOn: InitializeStage
+  jobs:
+  - job: run_tests_with_shard_loads_equalizer
+    displayName: 'Record Test With shard-load-equalizer'
+    pool:
+      vmImage: 'ubuntu-latest'
+    timeoutInMinutes: 60
+    strategy:
+      parallel: ${{ parameters.shardTotal }}
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.17.0'
+      - task: Npm@1
+        inputs:
+          command: 'install'
+      - script: |
+          echo "##vso[task.setvariable variable=SHARD_INDEX]$(System.JobPositionInPhase)"
+        displayName: 'Set shardIndex environment variable'
+
+      - script: |
+            az storage blob download -c $AZURE_STORAGE_CONTAINER -n test_run_statistics.json --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_KEY --file $(Pipeline.Workspace)/test_run_statistics.json
+        displayName: 'Download test statistics'
+        
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(Pipeline.Workspace)/test_run_statistics.json'
+          artifactName: 'test_run_statistics'
+          
+      - script: ls -la
+        displayName: 'List workspace contents'
+        
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifactName: 'test_run_statistics'
+          targetPath: '$(System.DefaultWorkingDirectory)'
+          
+      - script: ls -la
+        displayName: 'List working directory contents'
+        
+      - script: |
+          echo $SHARD_INDEX
+          echo '${{ parameters.shardTotal }}'
+          echo '${{ parameters.tag }}'
+
+          TAG="${{ parameters.tag }}"
+          if [ ${#TAG} -eq 1 ]; then
+            test_names=$(node -e 'import("shard-loads-equalizer").then(module => console.log(module.shardLoadsEqualizer($(SHARD_INDEX),${{ parameters.shardTotal }}))).catch(err => console.error(err))')
+          else
+            test_names=$(node -e 'import("shard-loads-equalizer").then(module => console.log(module.shardLoadsEqualizer($(SHARD_INDEX),${{ parameters.shardTotal }},"${{ parameters.tag }}"))).catch(err => console.error(err))')
+
+          fi
+          echo "##vso[task.setvariable variable=test_names;isOutput=true]$test_names"
+        displayName: 'Get test names'
+        name: GetTestNames
+
+
+      - script: |
+            echo "$(GetTestNames.test_names)"
+            npx playwright test --grep "$(GetTestNames.test_names)"
+        displayName: 'Run Playwright tests'
+# This is Optional, my intention is to run the tests without shard loads equalizer to show the difference in execution time
+- stage: PrepareNormalTests
+  displayName: 'Prepare Normal Tests'
+  dependsOn: TestWithShardLoads
+  jobs:
+  - job: set_variable_for_normal_tests
+    displayName: 'Set variable for normal tests'
+    pool:
+      vmImage: 'ubuntu-latest'
+    timeoutInMinutes: 60
+    steps:
+      - task: Bash@3
+        name: SetVarsforNormaltests
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "##vso[task.setvariable variable=shardTotal]${{ parameters.shardTotal }}"
+
+- stage: TestWithoutShardLoads
+  displayName: 'Tests Without Shard Loads'
+  dependsOn: PrepareNormalTests
+  jobs:
+  - job: run_tests_without_shard_loads_equalizer
+    displayName: 'Run tests without shard-loads-equalizer'
+    pool:
+      vmImage: 'ubuntu-latest'
+    timeoutInMinutes: 60
+    strategy:
+      parallel: ${{ parameters.shardTotal }}
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.17.0'
+      - task: Npm@1
+        inputs:
+          command: 'install'
+      - script: |
+          echo "##vso[task.setvariable variable=SHARD_INDEX]$(System.JobPositionInPhase)"
+        displayName: 'Set shardIndex environment variable'
+
+      - script: |
+          # Prepare tag pattern (replace commas with |)
+          tag_pattern="${{ parameters.tag }}"
+          tag_pattern=${tag_pattern//,/|}
+          echo "##vso[task.setvariable variable=TAG_PATTERN]$tag_pattern"
+        displayName: 'Prepare tag pattern'
+        condition: ne('${{ parameters.tag }}', '')
+
+      - script: |
+          echo $(SHARD_INDEX)/${{ parameters.shardTotal }}
+          if [ -n "${{ parameters.tag }}" ]; then
+            npx playwright test --shard=$(SHARD_INDEX)/${{ parameters.shardTotal }} --grep "$(TAG_PATTERN)"
+          else
+            npx playwright test --shard=$(SHARD_INDEX)/${{ parameters.shardTotal }}
+          fi
+        displayName: 'Run Playwright Tests'

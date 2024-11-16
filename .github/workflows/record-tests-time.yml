@@ -41,9 +41,8 @@ jobs:
           shardTotal=${{ github.event.inputs.shardTotal }}
         fi
         shardIndexArray=$(echo '["'$shardIndex'"]' | sed 's/,/","/g')
-        echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
-        echo "::set-output name=shardIndexArray::$shardIndexArray"
-        echo "::set-output name=shardTotal::$shardTotal"
+        echo "shardIndexArray=$shardIndexArray" >> "$GITHUB_OUTPUT"
+        echo "shardTotal=$shardTotal" >> "$GITHUB_OUTPUT"
         
   record_test_time:
     timeout-minutes: 60
@@ -59,8 +58,8 @@ jobs:
         fetch-depth: 0  
     - name: Set shardIndex and AUTO environment variables
       run: |
-        echo 'SHARD_INDEX=${{ matrix.shardIndex }}' >> $GITHUB_ENV
-        echo 'AUTO=true' >> $GITHUB_ENV  # Set AUTO environment variable to true
+        echo "SHARD_INDEX=${{ matrix.shardIndex }}" >> "$GITHUB_ENV"
+        echo "AUTO=true" >> "$GITHUB_ENV"  # Set AUTO environment variable to true
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*

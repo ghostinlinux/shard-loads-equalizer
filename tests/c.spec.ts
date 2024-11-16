@@ -1,93 +1,145 @@
 import { test } from "../baseTest";
 test.describe("c_1st_describe", () => {
-  test("check application loads successfully now", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️check application loads successfully now");
-  });
+  test(
+    "check application loads successfully now",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️check application loads successfully now");
+    }
+  );
 
-  test("verify user input behaves correctly", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️verify user input behaves correctly");
-  });
+  test(
+    "verify user input behaves correctly",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️verify user input behaves correctly");
+    }
+  );
 
-  test("ensure all buttons trigger actions", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️ensure all buttons trigger actions");
-  });
+  test(
+    "ensure all buttons trigger actions",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️ensure all buttons trigger actions");
+    }
+  );
 
-  test("confirm navigation works as expected", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️confirm navigation works as expected");
-  });
+  test(
+    "confirm navigation works as expected",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️confirm navigation works as expected");
+    }
+  );
 
-  test("validate user interface components function", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️validate user interface components function");
-  });
+  test(
+    "validate user interface components function",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️validate user interface components function");
+    }
+  );
 });
 
 test.describe("c_2nd_describe", () => {
-  test("assess performance under heavy load abhuyuglaeawsrdtygu", async ({
-    page,
-  }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️assess performance under heavy load abhuyuglaeawsrdtygu");
-  });
+  test(
+    "assess performance under heavy load abhuyuglaeawsrdtygu",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️assess performance under heavy load abhuyuglaeawsrdtygu");
+    }
+  );
 
-  test("simulate multiple user scenarios effectively sfyawgoulrgyuawg", async ({
-    page,
-  }) => {
-    await page.waitForTimeout(6000);
-    console.log(
-      "✔️simulate multiple user scenarios effectively sfyawgoulrgyuawg"
-    );
-  });
+  test(
+    "simulate multiple user scenarios effectively sfyawgoulrgyuawg",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log(
+        "✔️simulate multiple user scenarios effectively sfyawgoulrgyuawg"
+      );
+    }
+  );
 
-  test("gyuaeryufzsl check error handling across inputs", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️gyuaeryufzsl check error handling across inputs");
-  });
+  test(
+    "gyuaeryufzsl check error handling across inputs",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️gyuaeryufzsl check error handling across inputs");
+    }
+  );
 
-  test("test application jbeariugfbuay behavior during timeout", async ({
-    page,
-  }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️test application jbeariugfbuay behavior during timeout");
-  });
+  test(
+    "test application jbeariugfbuay behavior during timeout",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️test application jbeariugfbuay behavior during timeout");
+    }
+  );
 
-  test("confirm all buhfgbayu links redirect properly", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️confirm all buhfgbayu links redirect properly");
-  });
+  test(
+    "confirm all buhfgbayu links redirect properly",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️confirm all buhfgbayu links redirect properly");
+    }
+  );
 });
 
 test.describe("c_3rd_describe", () => {
-  test("monitor application fjkhguierh responsiveness on devices", async ({
-    page,
-  }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️monitor application fjkhguierh responsiveness on devices");
-  });
+  test(
+    "monitor application fjkhguierh responsiveness on devices",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️monitor application fjkhguierh responsiveness on devices");
+    }
+  );
 
-  test("validate all features hvuifdhbsi work seamlessly", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️validate all features hvuifdhbsi work seamlessly");
-  });
+  test(
+    "validate all features hvuifdhbsi work seamlessly",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️validate all features hvuifdhbsi work seamlessly");
+    }
+  );
 
-  test("analyze fdvserved logs for performance insights", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️analyze fdvserved logs for performance insights");
-  });
+  test(
+    "analyze fdvserved logs for performance insights",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️analyze fdvserved logs for performance insights");
+    }
+  );
 
-  test("review testsssssss cases for accuracy", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️review testsssssss cases for accuracy");
-  });
+  test(
+    "review testsssssss cases for accuracy",
+    { tag: "@two" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️review testsssssss cases for accuracy");
+    }
+  );
 
-  test("evaluate user feedback for enhancementttts", async ({ page }) => {
-    await page.waitForTimeout(6000);
-    console.log("✔️evaluate user feedback for enhancementttts");
-  });
+  test(
+    "evaluate user feedback for enhancementttts",
+    { tag: "@one" },
+    async ({ page }) => {
+      await page.waitForTimeout(6000);
+      console.log("✔️evaluate user feedback for enhancementttts");
+    }
+  );
 });
 
 test.describe("c_4th_describe", () => {
