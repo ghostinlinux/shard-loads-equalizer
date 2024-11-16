@@ -1,0 +1,120 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'tests/**'
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'tests/**'
+
+parameters:
+  - name: shardIndex
+    displayName: 'Shard Index (comma-separated values)'
+    type: string
+    default: '1,2,3,4,5,6,7,8'
+  - name: shardTotal
+    displayName: 'Shard Total'
+    type: number
+    default: 8
+
+variables:
+  - group: shard-load-variable-gp
+  - name: shardTotal
+    value: ${{ parameters.shardTotal }}
+  - name: artifactName
+    value: 'test_run_statistics'
+  - name: AUTO
+    value: 'true'
+jobs:
+- job: SetVariables
+  displayName: 'Set shardIndex array and shardTotal'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+    - task: Bash@3
+      name: SetVars
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo "##vso[task.setvariable variable=shardTotal]${{ parameters.shardTotal }}"
+
+- job: RecordTestTime
+  displayName: 'Record Test Time'
+  dependsOn: SetVariables
+  pool:
+    vmImage: 'ubuntu-latest'
+  timeoutInMinutes: 60
+  strategy:
+    parallel: ${{ parameters.shardTotal }}
+  steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.17.0'
+    - task: Npm@1
+      inputs:
+        command: 'install'
+    - script: |
+        echo "##vso[task.setvariable variable=SHARD_INDEX]$(System.JobPositionInPhase)"
+      displayName: 'Set shardIndex environment variable'
+        
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo "The value of auto is $(AUTO)"
+          if [ "$MEASURE_EXECUTION_TIME" = "true" ]; then
+            npx playwright test --shard=$(System.JobPositionInPhase)/$(shardTotal) --repeat-each=1
+          else
+            echo "Skipping test execution because MEASURE_EXECUTION_TIME is FALSE"
+            exit 1
+          fi
+      displayName: 'Run Playwright tests'
+      env:
+        MEASURE_EXECUTION_TIME: $(MEASURE_EXECUTION_TIME)
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/test_run_statistics_$(System.JobPositionInPhase).json'
+        artifact: '$(artifactName)_$(System.JobPositionInPhase)'
+      displayName: 'Publish Test Statistics'
+
+- job: CombineRecordTestTime
+  displayName: 'Combine Record Test Time and Upload to Azure Blob'
+  dependsOn: RecordTestTime
+  pool:
+    vmImage: 'ubuntu-latest'
+  timeoutInMinutes: 60
+  steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        itemPattern: 'test_run_statistics_*/*.json'
+        targetPath: '$(System.DefaultWorkingDirectory)'
+      displayName: 'Download Test Statistics'
+    - script: |
+        cd '$(System.DefaultWorkingDirectory)'
+        find . -type f -name "test_run_statistics_*.json" -exec mv {} . \;
+        if [ -f test_run_statistics.json ]; then
+            rm test_run_statistics.json
+        fi
+        jq -s '[.[][]]' test_run_statistics_*.json > test_run_statistics.json || echo "No JSON files found to combine"
+      displayName: 'Combine JSON files'
+    
+    - script: |
+        if [ -f "test_run_statistics.json" ]; then
+          echo "Uploading test_run_statistics.json to Azure Blob Storage"
+          az storage blob upload --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_KEY --container-name $AZURE_STORAGE_CONTAINER --file test_run_statistics.json --name test_run_statistics.json
+        else
+          echo "Combined JSON file not found, skipping upload."
+          exit 1
+        fi
+      displayName: 'Upload combined JSON file to Azure Storage Blob'
+      env:
+        AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
+        AZURE_STORAGE_CONTAINER: $(AZURE_STORAGE_CONTAINER)
+        AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
