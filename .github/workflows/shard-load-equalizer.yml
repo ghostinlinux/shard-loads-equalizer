@@ -11,6 +11,10 @@ on:
         description: "Provide total number of shards"
         required: true
         default: 10
+      tag:
+        description: "Filter tests by tag (comma-separated for multiple tags, e.g. @one,@two)"
+        required: false
+        default: ""
 
 jobs:
   set_variable_for_shard_loads_equalizer:
@@ -22,9 +26,8 @@ jobs:
         id: set_vars
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
-          echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
-          echo "::set-output name=shardIndexArray::$shardIndexArray"
-          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
+          echo "shardIndexArray=$shardIndexArray" >> "$GITHUB_OUTPUT"
+          echo "AUTO=false" >> "$GITHUB_ENV"
 
   run_tests_with_shard_loads_equalizer:
     runs-on: ubuntu-latest
@@ -40,19 +43,20 @@ jobs:
         with:
           node-version: lts/*
       - name: Set shardTotal environment variable
-        run: echo "SHARD_TOTAL=${{ github.event.inputs.shardTotal }}" >> $GITHUB_ENV
+        run: echo "SHARD_TOTAL=${{ github.event.inputs.shardTotal }}" >> "$GITHUB_ENV"
+      - name: Set tag environment variable
+        run: echo "TAG=${{ github.event.inputs.tag }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: npm install
-      - name: Get test names
+      - name: Get test names based on shard, total shards, and optional tag
         id: getTestNames
         run: |
-          test_names=$(node -e 'import("shard-loads-equalizer").then(module => console.log(module.shardLoadsEqualizer(${{ matrix.shardIndex }},${{ github.event.inputs.shardTotal }}))).catch(err => console.error(err))')
-          echo "test_names=$test_names" >> $GITHUB_ENV
-      - name: Run Playwright tests
+          test_names=$(node -e 'import("shard-loads-equalizer").then(module => console.log(module.shardLoadsEqualizer(${{ matrix.shardIndex }},${{ github.event.inputs.shardTotal }},"${{ github.event.inputs.tag }}"))).catch(err => console.error(err))')
+          echo "test_names=$test_names" >> "$GITHUB_ENV"
+      - name: Run Playwright tests with filtered test names
         run: |
           npx playwright test --grep "${{ env.test_names }}"
-
-  # This is Optional, my intention is to run the tests without shard loads equalizer to show the difference in execution time
+# This is Optional, my intention is to run the tests without shard loads equalizer to show the difference in execution time 
   set_variable_for_normal_tests:
     needs: run_tests_with_shard_loads_equalizer
     runs-on: ubuntu-latest
@@ -63,15 +67,13 @@ jobs:
         id: set_variable_for_normal_test
         run: |
           shardIndexArray=$(echo '["'${{ github.event.inputs.shardIndex }}'"]' | sed 's/,/","/g')
-          echo "shardIndexArray=$shardIndexArray" >> $GITHUB_ENV
-          echo "::set-output name=shardIndexArray::$shardIndexArray"
-          echo "AUTO=false" >> $GITHUB_ENV  # Set AUTO to false here
+          echo "shardIndexArray=$shardIndexArray" >> "$GITHUB_OUTPUT"
+          echo "AUTO=false" >> "$GITHUB_ENV"
 
   run_tests_without_shard_loads_equalizer:
-    needs:
-      - set_variable_for_normal_tests
-    timeout-minutes: 60
+    needs: set_variable_for_normal_tests
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -82,9 +84,13 @@ jobs:
         with:
           node-version: lts/*
       - name: Set shardTotal environment variable
-        run: echo "shardTotal=${{ matrix.shardTotal }}" >> $GITHUB_ENV
+        run: echo "SHARD_TOTAL=${{ github.event.inputs.shardTotal }}" >> "$GITHUB_ENV"
+      - name: Prepare test tag pattern
+        run: |
+          TAG_PATTERN="${{ github.event.inputs.tag }}"
+          echo "TAG=${TAG_PATTERN//,/|}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: npm install
-      - name: Run Playwright tests
+      - name: Run Playwright tests without shard loads equalizer
         run: |
-          npx playwright test --shard=${{ matrix.shardIndex }}/${{ github.event.inputs.shardTotal }}
+          npx playwright test --shard=${{ matrix.shardIndex }}/${{ github.event.inputs.shardTotal }} --grep "${{ env.TAG }}"
